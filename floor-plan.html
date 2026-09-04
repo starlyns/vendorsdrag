@@ -1,0 +1,984 @@
+<title>Victory Floor Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDEFEC;
+  --panel:#F8F9F7;
+  --panel-2:#E4E8E5;
+  --ink:#141B18;
+  --ink-2:#4B5854;
+  --ink-3:#7E8B86;
+  --line:#B7C0BC;
+  --line-strong:#7F8D88;
+  --accent:#0B6B57;
+  --accent-soft:#D9E8E2;
+  --accent-ink:#08543F;
+  --hot:#C8102E;
+  --hot-soft:#F7DCE0;
+  --warn:#9A6A12;
+  --fixed:#DDE2DF;
+  --shadow:0 1px 2px rgba(20,27,24,.07), 0 10px 26px rgba(20,27,24,.06);
+  --radius:3px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#121715;
+    --panel:#1B2320;
+    --panel-2:#26302C;
+    --ink:#E7EDE9;
+    --ink-2:#A9B4B0;
+    --ink-3:#7C8985;
+    --line:#3A453F;
+    --line-strong:#66746E;
+    --accent:#43AE90;
+    --accent-soft:#15332A;
+    --accent-ink:#7FD0B8;
+    --hot:#F26A7E;
+    --hot-soft:#39181E;
+    --warn:#D6A03A;
+    --fixed:#232C29;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px rgba(0,0,0,.3);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#121715;
+  --panel:#1B2320;
+  --panel-2:#26302C;
+  --ink:#E7EDE9;
+  --ink-2:#A9B4B0;
+  --ink-3:#7C8985;
+  --line:#3A453F;
+  --line-strong:#66746E;
+  --accent:#43AE90;
+  --accent-soft:#15332A;
+  --accent-ink:#7FD0B8;
+  --hot:#F26A7E;
+  --hot-soft:#39181E;
+  --warn:#D6A03A;
+  --fixed:#232C29;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 26px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:Archivo, "Helvetica Neue", Arial, sans-serif;
+  font-size:14px; line-height:1.45;
+  height:100vh; overflow:hidden;
+}
+.mono{font-family:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.app{display:grid; grid-template-rows:auto 1fr; height:100vh}
+.topbar{
+  display:flex; align-items:center; gap:20px;
+  padding:12px 18px; border-bottom:1px solid var(--line);
+  background:var(--panel);
+}
+.brand{display:flex; flex-direction:column; gap:1px; min-width:0}
+.brand h1{
+  margin:0; font-size:16px; font-weight:700; letter-spacing:-.01em;
+  white-space:nowrap;
+}
+.brand .sub{
+  font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600;
+}
+.tally{display:flex; gap:0; margin-left:auto; align-items:stretch}
+.tally .cell{
+  padding:0 16px; display:flex; flex-direction:column; align-items:flex-end; justify-content:center;
+  border-left:1px solid var(--line);
+}
+.tally .cell:first-child{border-left:0}
+.tally .n{font-size:19px; font-weight:600; line-height:1.1}
+.tally .k{font-size:9px; letter-spacing:.13em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.tally .open .n{color:var(--accent)}
+.tally .left .n{color:var(--hot)}
+
+.tools{display:flex; gap:6px; align-items:center}
+button{
+  font-family:inherit; font-size:12px; font-weight:500; color:var(--ink);
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:6px 10px; cursor:pointer; line-height:1.2;
+}
+button:hover{border-color:var(--line-strong); background:var(--panel-2)}
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible{
+  outline:2px solid var(--accent); outline-offset:1px;
+}
+button.icon{padding:6px 9px}
+button.primary{background:var(--accent); border-color:var(--accent); color:#fff}
+button.primary:hover{background:var(--accent-ink); border-color:var(--accent-ink)}
+button.danger{color:var(--hot); border-color:var(--line)}
+button.danger:hover{border-color:var(--hot); background:var(--hot-soft)}
+button:disabled{opacity:.4; cursor:not-allowed}
+
+.status{
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:10px; letter-spacing:.1em; text-transform:uppercase; font-weight:600;
+  color:var(--ink-3);
+}
+.status .dot{width:6px; height:6px; border-radius:50%; background:var(--ink-3)}
+.status.live .dot{background:var(--accent)}
+.status.live{color:var(--accent)}
+.status.local .dot{background:var(--warn)}
+.status.local{color:var(--warn)}
+
+/* ---------- body ---------- */
+.main{display:grid; grid-template-columns:288px 1fr; min-height:0}
+
+/* ---------- roster ---------- */
+.roster{
+  border-right:1px solid var(--line); background:var(--panel);
+  display:grid; grid-template-rows:auto auto 1fr auto; min-height:0;
+}
+.roster-head{padding:12px 14px 10px; display:flex; flex-direction:column; gap:9px}
+.roster-title{
+  font-size:10px; letter-spacing:.14em; text-transform:uppercase;
+  font-weight:600; color:var(--ink-3); display:flex; justify-content:space-between;
+}
+.search{
+  width:100%; font-family:inherit; font-size:13px; color:var(--ink);
+  background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+  padding:7px 9px;
+}
+.search::placeholder{color:var(--ink-3)}
+.segs{display:flex; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden}
+.segs button{
+  flex:1; border:0; border-radius:0; border-left:1px solid var(--line);
+  font-size:11px; padding:5px 4px; background:var(--paper); color:var(--ink-2);
+}
+.segs button:first-child{border-left:0}
+.segs button[aria-pressed="true"]{background:var(--accent); color:#fff; font-weight:600}
+
+.hint{
+  padding:0 14px 10px; font-size:11px; color:var(--ink-3); line-height:1.4;
+}
+.list{
+  overflow-y:auto; padding:0 10px 10px; display:flex; flex-direction:column; gap:4px;
+  min-height:0;
+}
+.list.dropping{background:var(--hot-soft); outline:2px dashed var(--hot); outline-offset:-4px}
+
+.card{
+  display:flex; align-items:center; gap:8px;
+  padding:6px 8px; border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--paper); cursor:grab; user-select:none;
+}
+.card:hover{border-color:var(--line-strong)}
+.card.placed{background:var(--accent-soft); border-color:transparent}
+.card.armed{outline:2px solid var(--hot); outline-offset:1px; border-color:transparent}
+.card.dragging{opacity:.35}
+.card .nm{flex:1; font-size:12.5px; font-weight:500; line-height:1.25; min-width:0; overflow-wrap:anywhere}
+.card .tag{
+  font-size:9px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:600; margin-top:1px;
+}
+.card .bn{
+  font-size:12px; font-weight:600; color:var(--accent-ink);
+  background:var(--panel); border:1px solid var(--line);
+  border-radius:2px; padding:1px 5px; flex:none;
+}
+.card .grip{color:var(--line-strong); font-size:13px; line-height:1; flex:none; letter-spacing:-1px}
+.empty-note{padding:18px 12px; text-align:center; color:var(--ink-3); font-size:12px}
+
+.roster-foot{
+  border-top:1px solid var(--line); padding:9px 12px;
+  display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+}
+.roster-foot button{font-size:11px; padding:5px 8px}
+
+/* ---------- canvas ---------- */
+.plan{position:relative; display:grid; grid-template-rows:auto 1fr; min-height:0; background:var(--paper)}
+.planbar{
+  display:flex; align-items:center; gap:10px; padding:7px 14px;
+  border-bottom:1px solid var(--line); background:var(--panel);
+}
+.planbar .spacer{flex:1}
+.legend{display:flex; gap:14px; align-items:center; font-size:10.5px; color:var(--ink-2)}
+.legend i{
+  display:inline-block; width:11px; height:11px; margin-right:5px;
+  vertical-align:-1px; border-radius:1px; border:1px solid var(--line-strong);
+}
+.legend .open i{background:var(--paper)}
+.legend .one i{background:var(--accent-soft); border-color:var(--accent)}
+.legend .two i{
+  background:linear-gradient(var(--accent-soft) 0 45%, var(--accent) 45% 55%, var(--accent-soft) 55% 100%);
+  border-color:var(--accent);
+}
+.legend .fx i{background:var(--fixed); border-style:dashed}
+
+.canvas{overflow:auto; padding:16px; display:flex; justify-content:center}
+.stage-wrap{width:var(--planw, 720px); flex:none}
+svg{display:block; width:100%; height:auto; overflow:visible}
+
+.booth .shell{fill:var(--paper); stroke:var(--line-strong); stroke-width:1.6px; vector-effect:non-scaling-stroke}
+.booth.has1 .shell{fill:var(--accent-soft); stroke:var(--accent)}
+.booth.has2 .shell{fill:var(--accent-soft); stroke:var(--accent)}
+.booth .num{fill:var(--ink-3); font-size:1.5px; font-weight:600}
+.booth.has1 .num, .booth.has2 .num{fill:var(--accent-ink)}
+.booth .nm{fill:var(--ink); font-size:1.35px; font-weight:600}
+.booth .divider{stroke:var(--accent); stroke-width:1px; stroke-dasharray:2 1.6; vector-effect:non-scaling-stroke}
+.booth{cursor:pointer}
+.booth:hover .shell{stroke:var(--ink); stroke-width:2.4px}
+.booth.sel .shell{stroke:var(--hot); stroke-width:3px}
+.booth.target .shell{fill:var(--hot-soft); stroke:var(--hot); stroke-width:3px}
+.booth.full.target .shell{fill:var(--panel-2); stroke:var(--ink-3); stroke-dasharray:3 2}
+.booth.hi .shell{stroke:var(--hot); stroke-width:3px}
+
+.fixture rect, .fixture path, .fixture circle{
+  fill:var(--fixed); stroke:var(--line); stroke-width:1.2px; vector-effect:non-scaling-stroke;
+}
+.fixture text{fill:var(--ink-3); font-size:1.4px; font-weight:600; letter-spacing:.08em}
+.wall{fill:none; stroke:var(--line-strong); stroke-width:2px; vector-effect:non-scaling-stroke}
+.drape{stroke:var(--line-strong); stroke-width:2px; stroke-dasharray:1 3; stroke-linecap:round; vector-effect:non-scaling-stroke; fill:none}
+.drape-label{fill:var(--ink-3); font-size:1.5px; font-weight:600; letter-spacing:.22em}
+
+/* ---------- inspector ---------- */
+.inspector{
+  position:absolute; right:16px; top:56px; width:236px;
+  background:var(--panel); border:1px solid var(--line-strong); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:12px 13px; display:none;
+}
+.inspector.on{display:block}
+.insp-head{display:flex; align-items:baseline; gap:8px; margin-bottom:10px}
+.insp-head .b{font-size:24px; font-weight:700; line-height:1}
+.insp-head .l{font-size:9px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:600}
+.insp-head button{margin-left:auto; padding:2px 7px; font-size:14px; line-height:1}
+.slot{
+  display:flex; align-items:center; gap:8px; padding:7px 8px;
+  border:1px solid var(--line); border-radius:var(--radius); margin-bottom:6px;
+  font-size:12.5px; background:var(--paper);
+}
+.slot.vacant{color:var(--ink-3); border-style:dashed; font-style:italic}
+.slot .nm{flex:1; font-weight:500; overflow-wrap:anywhere}
+.slot button{padding:3px 7px; font-size:10.5px; flex:none}
+
+.toast{
+  position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+  background:var(--ink); color:var(--paper); padding:9px 15px;
+  border-radius:var(--radius); font-size:12.5px; font-weight:500;
+  box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity .18s;
+  z-index:50; max-width:min(440px, 90vw); text-align:center;
+}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion: reduce){ .toast{transition:none} }
+
+@media (max-width: 860px){
+  body{overflow:auto; height:auto}
+  .app{height:auto; grid-template-rows:auto auto}
+  .main{grid-template-columns:1fr}
+  .roster{border-right:0; border-bottom:1px solid var(--line)}
+  .list{max-height:260px}
+  .inspector{position:static; width:auto; margin:12px 16px 0}
+  .topbar{flex-wrap:wrap}
+  .tally{margin-left:0; width:100%}
+}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <h1>Victory Floor Plan</h1>
+      <div class="sub">Booth assignment &middot; 72 booths</div>
+    </div>
+    <div class="tools">
+      <span class="status" id="status"><span class="dot"></span><span id="statusText">Connecting</span></span>
+    </div>
+    <div class="tally">
+      <div class="cell"><span class="n mono" id="tPlaced">0</span><span class="k">Placed</span></div>
+      <div class="cell left"><span class="n mono" id="tLeft">75</span><span class="k">To place</span></div>
+      <div class="cell open"><span class="n mono" id="tOpen">72</span><span class="k">Booths open</span></div>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="roster">
+      <div class="roster-head">
+        <div class="roster-title"><span>Vendors</span><span class="mono" id="shownCount"></span></div>
+        <input class="search" id="search" type="search" placeholder="Search vendors&hellip;" autocomplete="off">
+        <div class="segs" role="group" aria-label="Filter vendors">
+          <button data-filter="unplaced" aria-pressed="true">To place</button>
+          <button data-filter="placed" aria-pressed="false">Placed</button>
+          <button data-filter="all" aria-pressed="false">All</button>
+        </div>
+      </div>
+      <p class="hint">Drag a vendor onto a booth. Drop one back here to unassign. On a tablet, tap a vendor then tap a booth.</p>
+      <div class="list" id="list"></div>
+      <div class="roster-foot">
+        <button id="addBtn">+ Add vendor</button>
+        <button id="csvBtn">Export CSV</button>
+      </div>
+    </aside>
+
+    <section class="plan">
+      <div class="planbar">
+        <div class="legend">
+          <span class="open"><i></i>Open</span>
+          <span class="one"><i></i>1 vendor</span>
+          <span class="two"><i></i>Shared</span>
+          <span class="fx"><i></i>Fixed</span>
+        </div>
+        <div class="spacer"></div>
+        <div class="tools">
+          <button class="icon" id="zoomOut" title="Zoom out" aria-label="Zoom out">&minus;</button>
+          <button class="icon" id="zoomIn" title="Zoom in" aria-label="Zoom in">+</button>
+          <button id="fitBtn">Fit</button>
+        </div>
+      </div>
+      <div class="canvas" id="canvas">
+        <div class="stage-wrap" id="stageWrap"></div>
+      </div>
+      <div class="inspector" id="inspector" aria-live="polite"></div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   FLOOR PLAN GEOMETRY
+   Traced from the 2024 layout. Units: 1 booth = 10 x 10.
+   Four vertical bands, six rows in the upper half and six in
+   the lower half, split by the centre aisle.
+   ============================================================ */
+const BW = 10, BH = 10;
+const ROWS_UPPER = [26, 36, 46, 56, 66, 76];
+const ROWS_LOWER = [105, 115, 125, 135, 145, 155];
+
+const COLUMNS = [
+  { x: 18, upper: [12, 11, 10,  9,  8,  7], lower: [ 6,  5,  4,  3,  2,  1] },
+  { x: 33, upper: [13, 14, 15, 16, 17, 18], lower: [19, 20, 21, 22, 23, 24] },
+  { x: 43, upper: [36, 35, 34, 33, 32, 31], lower: [30, 29, 28, 27, 26, 25] },
+  { x: 59, upper: [37, 38, 39, 40, 41, 42], lower: [43, 44, 45, 46, 47, 48] },
+  { x: 69, upper: [60, 59, 58, 57, 56, 55], lower: [54, 53, 52, 51, 50, 49] },
+  { x: 86, upper: [61, 62, 63, 64, 65, 66], lower: [67, 68, 69, 70, 71, 72] }
+];
+
+const BOOTHS = [];
+for (const col of COLUMNS) {
+  ROWS_UPPER.forEach((y, i) => BOOTHS.push({ id: String(col.upper[i]), x: col.x, y, w: BW, h: BH }));
+  ROWS_LOWER.forEach((y, i) => BOOTHS.push({ id: String(col.lower[i]), x: col.x, y, w: BW, h: BH }));
+}
+BOOTHS.sort((a, b) => Number(a.id) - Number(b.id));
+const BOOTH_BY_ID = new Map(BOOTHS.map(b => [b.id, b]));
+
+/* Fixed features — not assignable, drawn for orientation. */
+const FIXTURES = [
+  { kind: "rect", x: 42,   y: 1,    w: 29,   h: 5,    label: "STAGE" },
+  { kind: "rect", x: 42.6, y: 1.6,  w: 7,    h: 3.8,  label: "DJ",     small: true },
+  { kind: "rect", x: 60,   y: 1.6,  w: 10.4, h: 3.8,  label: "PRIZES", small: true },
+  { kind: "rect", x: 48.6, y: 9.9,  w: 12.2, h: 3.6,  label: "PRODUCE" },
+  { kind: "rect", x: 31,   y: 11,   w: 11,   h: 11.6, label: "IBP", rot: -20 },
+  { kind: "rect", x: 71,   y: 10.6, w: 12.6, h: 9.2,  label: "TRUCK" },
+  { kind: "rect", x: 73.6, y: 20.4, w: 6.8,  h: 3.4,  label: "BEV", small: true },
+  { kind: "rect", x: 51.4, y: 17,   w: 9.6,  h: 5,    label: "2 TABLES", small: true },
+  { kind: "rect", x: 45,   y: 91.4, w: 20.6, h: 7.2,  label: "6 TABLES" },
+  { kind: "rect", x: 52.2, y: 99.6, w: 6.8,  h: 3.4,  label: "BEV", small: true },
+  { kind: "rect", x: 26.9, y: 170,  w: 31.1, h: 7,    label: "RECEPTION" },
+  { kind: "rect", x: 58.9, y: 170,  w: 34,   h: 7,    label: "PASSPORT TABLE" }
+];
+
+/* Cocktail-table clusters flanking the centre aisle. */
+const CLUSTERS = [
+  { x: 22.5, y: 90.4 }, { x: 33.2, y: 90.4 },
+  { x: 75.2, y: 90.4 }, { x: 85.3, y: 90.4 }
+];
+
+const VB = { x: 14, y: -3, w: 92, h: 186 };
+
+/* ============================================================
+   VENDOR ROSTER
+   ============================================================ */
+const VENDOR_NAMES = [
+  "AGROSUPER","ALLEN PICKLE WORKS","ALUF PLASTICS DIVISION","AMERCARE / SOUTHSEA",
+  "ANCHOR PACKAGING","ATALANTA","AUNT KITTYS FOODS / HANOVER","B&G",
+  "BUFFALO PROVISIONS","BUMBLE BEE","BUNGE","CAVENDISH","CEDAR VALLEY",
+  "CHEESE MERCHANT","CHEFLER","CONAGRA","CREAM O LAND / Unipro","DAISY","DART",
+  "DAVID COOKIE","DOUBLE BARREL","EASTERN FISH","ELARA","FARMER'S IMPORT",
+  "FARMLAND","FURMANO","JM SMUCKERS","JONES","KELLANOVA","KENS","KIKKOMAN",
+  "KONTOS","KPS","KRAFT HEINZ","KRINOS","LAKE ERIE","LAND O LAKE",
+  "LASSONDE PAPPAS / Unipro","LAUBSCHER CHEESE","MAJOR","MARIAH",
+  "MAYAB HAPPY TACO","MCCAIN","MCCORMICK","MORCON","MRS. RESSLERS","NCCO",
+  "NORPAK","OLD WORLD","OLYMPIA","OPEN SYSTEM","PATRIOT PICKLE",
+  "PIKALO EMPANADAS","PLYMOUTH","QUALITY","R.S PORTER","RED GOLD","RUGGIERO",
+  "SABRETT","SAN BERNARDO","SANDT HONEY","SIMONIZ","SMARTER BEV","SMITHFIELD",
+  "SPANISH FOOD SOLUTIONS","STANI DAIRY","STARCO","STRATAS","TEC FOODS",
+  "TELIOS GREEK KITCHEN","TOWER ISLES","TROPICAL CHEESE","TYSON","UNILEVER",
+  "WK KELLOGS"
+];
+
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+
+/* vendors: id -> {id, name, booth, slot, custom} */
+const vendors = new Map();
+for (const name of VENDOR_NAMES) {
+  const id = slug(name);
+  vendors.set(id, { id, name, booth: null, slot: 0, custom: false });
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let db = null;
+let filter = "unplaced";
+let query = "";
+let armedId = null;      // vendor picked up by tap
+let selBooth = null;     // booth open in the inspector
+let dragId = null;
+let targetBooth = null;
+let planW = 720;
+
+const $ = s => document.querySelector(s);
+const listEl = $("#list");
+const stageWrap = $("#stageWrap");
+const inspectorEl = $("#inspector");
+const toastEl = $("#toast");
+
+let toastTimer = null;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("on"), 2600);
+}
+
+function setStatus(kind, text) {
+  const el = $("#status");
+  el.className = "status " + kind;
+  $("#statusText").textContent = text;
+}
+
+function occupantsOf(boothId) {
+  const out = [null, null];
+  for (const v of vendors.values()) {
+    if (v.booth === boothId) out[v.slot === 1 ? 1 : 0] = v;
+  }
+  // collapse a lone slot-1 occupant into slot 0
+  if (!out[0] && out[1]) { out[0] = out[1]; out[1] = null; }
+  return out;
+}
+
+/* ============================================================
+   PERSISTENCE
+   ============================================================ */
+async function connect() {
+  try { db = await window.claude?.use?.("db"); } catch (e) { db = null; }
+  if (!db) {
+    setStatus("local", "This device only");
+    toast("Working offline — changes on this page are not shared or saved.");
+    return;
+  }
+  setStatus("live", "Live");
+  db.collection("assignments").onSnapshot(snap => {
+    const seen = new Set();
+    for (const doc of snap.docs) {
+      const d = doc.data() || {};
+      seen.add(doc.id);
+      let v = vendors.get(doc.id);
+      if (!v) {
+        v = { id: doc.id, name: String(d.name || doc.id), custom: true, booth: null, slot: 0 };
+        vendors.set(doc.id, v);
+      }
+      v.booth = d.booth == null ? null : String(d.booth);
+      v.slot = d.slot === 1 ? 1 : 0;
+      if (d.name) v.name = String(d.name);
+    }
+    // a vendor whose doc was removed is back on the bench
+    for (const v of vendors.values()) {
+      if (!seen.has(v.id)) {
+        if (v.custom) vendors.delete(v.id);
+        else { v.booth = null; v.slot = 0; }
+      }
+    }
+    render();
+  }, err => {
+    setStatus("local", "Sync stopped");
+    toast(err.code === "revoked"
+      ? "Your access to this plan ended. Changes are no longer saved."
+      : "Live sync stopped. Reload the page to reconnect.");
+  });
+}
+
+async function save(v) {
+  render();
+  if (!db) return;
+  try {
+    await db.doc("assignments/" + v.id).set({
+      name: v.name,
+      booth: v.booth,
+      slot: v.slot,
+      custom: !!v.custom,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (e) {
+    if (e && e.code === "quota_exceeded") toast("The plan is full — remove a vendor before adding another.");
+    else if (e && e.code === "resource_exhausted") toast("Too many changes at once. Wait a moment and try again.");
+    else toast("That change did not save. Check your connection and try again.");
+  }
+}
+
+async function clearDoc(v) {
+  render();
+  if (!db) return;
+  try { await db.doc("assignments/" + v.id).delete(); }
+  catch (e) { toast("That change did not save. Check your connection and try again."); }
+}
+
+/* ============================================================
+   ASSIGNMENT
+   ============================================================ */
+function assign(vendorId, boothId) {
+  const v = vendors.get(vendorId);
+  const booth = BOOTH_BY_ID.get(boothId);
+  if (!v || !booth) return;
+  if (v.booth === boothId) { armedId = null; render(); return; }
+
+  const occ = occupantsOf(boothId).filter(Boolean);
+  if (occ.length >= 2) {
+    toast("Booth " + boothId + " already holds two vendors. Unassign one first.");
+    return;
+  }
+  v.booth = boothId;
+  v.slot = occ.length;   // 0 = whole booth, 1 = sharing
+  armedId = null;
+  selBooth = boothId;
+  save(v);
+  if (occ.length === 1) toast(v.name + " is sharing booth " + boothId + " with " + occ[0].name + ".");
+}
+
+function unassign(vendorId) {
+  const v = vendors.get(vendorId);
+  if (!v) return;
+  v.booth = null;
+  v.slot = 0;
+  armedId = null;
+  if (v.custom) { vendors.delete(v.id); clearDoc(v); }
+  else clearDoc(v);
+}
+
+/* ============================================================
+   ROSTER RENDER
+   ============================================================ */
+function visibleVendors() {
+  const q = query.trim().toLowerCase();
+  return [...vendors.values()]
+    .filter(v => {
+      if (filter === "placed" && !v.booth) return false;
+      if (filter === "unplaced" && v.booth) return false;
+      if (q && !v.name.toLowerCase().includes(q) && !(v.booth || "").includes(q)) return false;
+      return true;
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function renderList() {
+  const rows = visibleVendors();
+  $("#shownCount").textContent = rows.length + " / " + vendors.size;
+  listEl.replaceChildren();
+
+  if (!rows.length) {
+    const p = document.createElement("p");
+    p.className = "empty-note";
+    p.textContent = query
+      ? "No vendor matches “" + query + "”."
+      : (filter === "unplaced" ? "Every vendor has a booth." : "Nothing here yet.");
+    listEl.appendChild(p);
+    return;
+  }
+
+  for (const v of rows) {
+    const card = document.createElement("div");
+    card.className = "card" + (v.booth ? " placed" : "") + (armedId === v.id ? " armed" : "");
+    card.draggable = true;
+    card.dataset.vendor = v.id;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", v.name + (v.booth ? ", booth " + v.booth : ", not placed"));
+
+    const grip = document.createElement("span");
+    grip.className = "grip";
+    grip.textContent = "⠇⠇";
+    grip.setAttribute("aria-hidden", "true");
+
+    const nm = document.createElement("span");
+    nm.className = "nm";
+    nm.textContent = v.name;
+
+    card.append(grip, nm);
+
+    if (v.booth) {
+      const bn = document.createElement("span");
+      bn.className = "bn mono";
+      bn.textContent = v.booth;
+      card.appendChild(bn);
+    }
+    listEl.appendChild(card);
+  }
+}
+
+/* ============================================================
+   PLAN RENDER
+   ============================================================ */
+const SVGNS = "http://www.w3.org/2000/svg";
+const el = (n, attrs) => {
+  const e = document.createElementNS(SVGNS, n);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+};
+
+function wrap(text, maxChars, maxLines) {
+  const words = String(text).split(/\s+/);
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const next = cur ? cur + " " + w : w;
+    if (next.length <= maxChars) { cur = next; continue; }
+    if (cur) lines.push(cur);
+    cur = w.length > maxChars ? w.slice(0, maxChars - 1) + "…" : w;
+    if (lines.length === maxLines) break;
+  }
+  if (cur && lines.length < maxLines) lines.push(cur);
+  if (lines.length === maxLines) {
+    const used = lines.join(" ").length;
+    if (used < String(text).length - 1) {
+      lines[maxLines - 1] = lines[maxLines - 1].replace(/.{1}$/, "") + "…";
+    }
+  }
+  return lines;
+}
+
+function label(g, lines, cx, cy, size, cls) {
+  const lh = size * 1.18;
+  const start = cy - ((lines.length - 1) * lh) / 2;
+  lines.forEach((ln, i) => {
+    const t = el("text", {
+      x: cx, y: (start + i * lh).toFixed(2),
+      "text-anchor": "middle", "dominant-baseline": "central",
+      class: cls, "font-size": size
+    });
+    t.textContent = ln;
+    g.appendChild(t);
+  });
+}
+
+function renderPlan() {
+  const svg = el("svg", {
+    viewBox: [VB.x, VB.y, VB.w, VB.h].join(" "),
+    role: "group", "aria-label": "Hall floor plan"
+  });
+
+  /* --- fixed features --- */
+  for (const f of FIXTURES) {
+    const g = el("g", { class: "fixture" });
+    if (f.rot) g.setAttribute("transform", "rotate(" + f.rot + " " + (f.x + f.w / 2) + " " + (f.y + f.h / 2) + ")");
+    g.appendChild(el("rect", { x: f.x, y: f.y, width: f.w, height: f.h, rx: 0.6 }));
+    label(g, wrap(f.label, f.small ? 9 : 16, 2), f.x + f.w / 2, f.y + f.h / 2, f.small ? 1.1 : 1.4, "");
+    svg.appendChild(g);
+  }
+
+  /* --- cocktail-table clusters --- */
+  for (const c of CLUSTERS) {
+    const g = el("g", { class: "fixture" });
+    for (let i = 0; i < 4; i++) {
+      g.appendChild(el("circle", {
+        cx: c.x + (i % 2) * 4.2 + 1.6,
+        cy: c.y + Math.floor(i / 2) * 5.6 + 2,
+        r: 1.5
+      }));
+    }
+    svg.appendChild(g);
+  }
+
+  /* --- pipe and drape along the right wall --- */
+  svg.appendChild(el("path", { class: "drape", d: "M100.6 24 L100.6 168" }));
+  const dl = el("text", {
+    class: "drape-label", x: 103.4, y: 96,
+    "text-anchor": "middle",
+    transform: "rotate(90 103.4 96)"
+  });
+  dl.textContent = "PIPE AND DRAPE";
+  svg.appendChild(dl);
+
+  /* --- booths --- */
+  for (const b of BOOTHS) {
+    const occ = occupantsOf(b.id);
+    const n = occ.filter(Boolean).length;
+    const g = el("g", {
+      class: "booth" + (n ? " has" + n : "") + (n >= 2 ? " full" : "") +
+             (selBooth === b.id ? " sel" : "") +
+             (targetBooth === b.id ? " target" : ""),
+      "data-booth": b.id,
+      tabindex: "0",
+      role: "button",
+      "aria-label": "Booth " + b.id + (n ? ": " + occ.filter(Boolean).map(v => v.name).join(", ") : ": open")
+    });
+    g.appendChild(el("rect", { class: "shell", x: b.x, y: b.y, width: b.w, height: b.h }));
+
+    const num = el("text", { class: "num mono", x: b.x + 0.7, y: b.y + 2.1 });
+    num.textContent = b.id;
+    g.appendChild(num);
+
+    if (n === 1) {
+      label(g, wrap(occ[0].name, 13, 3), b.x + b.w / 2, b.y + b.h / 2 + 0.7, 1.35, "nm");
+    } else if (n === 2) {
+      g.appendChild(el("line", {
+        class: "divider",
+        x1: b.x, y1: b.y + b.h / 2, x2: b.x + b.w, y2: b.y + b.h / 2
+      }));
+      label(g, wrap(occ[0].name, 14, 2), b.x + b.w / 2, b.y + b.h * 0.29 + 0.5, 1.1, "nm");
+      label(g, wrap(occ[1].name, 14, 2), b.x + b.w / 2, b.y + b.h * 0.76, 1.1, "nm");
+    }
+    svg.appendChild(g);
+  }
+
+  stageWrap.replaceChildren(svg);
+}
+
+/* ============================================================
+   TALLIES + FULL RENDER
+   ============================================================ */
+function render() {
+  renderList();
+  renderPlan();
+  renderInspector();
+
+  const placed = [...vendors.values()].filter(v => v.booth).length;
+  const used = new Set([...vendors.values()].filter(v => v.booth).map(v => v.booth)).size;
+  $("#tPlaced").textContent = placed;
+  $("#tLeft").textContent = vendors.size - placed;
+  $("#tOpen").textContent = BOOTHS.length - used;
+}
+
+/* ============================================================
+   INSPECTOR
+   ============================================================ */
+function renderInspector() {
+  if (!selBooth) { inspectorEl.classList.remove("on"); inspectorEl.replaceChildren(); return; }
+  const occ = occupantsOf(selBooth);
+  inspectorEl.classList.add("on");
+  inspectorEl.replaceChildren();
+
+  const head = document.createElement("div");
+  head.className = "insp-head";
+  const b = document.createElement("span");
+  b.className = "b mono"; b.textContent = selBooth;
+  const l = document.createElement("span");
+  l.className = "l"; l.textContent = "Booth";
+  const x = document.createElement("button");
+  x.textContent = "×";
+  x.setAttribute("aria-label", "Close booth details");
+  x.addEventListener("click", () => { selBooth = null; render(); });
+  head.append(b, l, x);
+  inspectorEl.appendChild(head);
+
+  for (let i = 0; i < 2; i++) {
+    const v = occ[i];
+    const row = document.createElement("div");
+    row.className = "slot" + (v ? "" : " vacant");
+    if (v) {
+      const nm = document.createElement("span");
+      nm.className = "nm"; nm.textContent = v.name;
+      const rm = document.createElement("button");
+      rm.textContent = "Remove";
+      rm.addEventListener("click", () => unassign(v.id));
+      row.append(nm, rm);
+    } else {
+      row.textContent = i === 0 ? "Empty — drop a vendor here" : "Room for one more";
+    }
+    inspectorEl.appendChild(row);
+    if (i === 0 && !occ[0]) break;
+  }
+}
+
+/* ============================================================
+   DRAG AND DROP
+   ============================================================ */
+listEl.addEventListener("dragstart", e => {
+  const card = e.target.closest("[data-vendor]");
+  if (!card) return;
+  dragId = card.dataset.vendor;
+  card.classList.add("dragging");
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", dragId);
+});
+listEl.addEventListener("dragend", e => {
+  const card = e.target.closest("[data-vendor]");
+  if (card) card.classList.remove("dragging");
+  dragId = null; targetBooth = null;
+  listEl.classList.remove("dropping");
+  renderPlan();
+});
+
+/* drop on the plan */
+$("#canvas").addEventListener("dragover", e => {
+  if (!dragId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  const g = e.target.closest ? e.target.closest("[data-booth]") : null;
+  const id = g ? g.dataset.booth : null;
+  if (id !== targetBooth) { targetBooth = id; renderPlan(); }
+});
+$("#canvas").addEventListener("dragleave", e => {
+  if (e.target === $("#canvas") && targetBooth) { targetBooth = null; renderPlan(); }
+});
+$("#canvas").addEventListener("drop", e => {
+  if (!dragId) return;
+  e.preventDefault();
+  const g = e.target.closest ? e.target.closest("[data-booth]") : null;
+  const id = dragId; dragId = null;
+  const booth = targetBooth; targetBooth = null;
+  if (g && booth) assign(id, booth); else renderPlan();
+});
+
+/* drop back on the roster = unassign */
+listEl.addEventListener("dragover", e => {
+  if (!dragId) return;
+  const v = vendors.get(dragId);
+  if (!v || !v.booth) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "move";
+  listEl.classList.add("dropping");
+});
+listEl.addEventListener("dragleave", e => {
+  if (!listEl.contains(e.relatedTarget)) listEl.classList.remove("dropping");
+});
+listEl.addEventListener("drop", e => {
+  if (!dragId) return;
+  e.preventDefault();
+  listEl.classList.remove("dropping");
+  const id = dragId; dragId = null;
+  const v = vendors.get(id);
+  if (v && v.booth) unassign(id);
+});
+
+/* ============================================================
+   TAP TO PLACE (tablets, and anyone who prefers clicking)
+   ============================================================ */
+listEl.addEventListener("click", e => {
+  const card = e.target.closest("[data-vendor]");
+  if (!card) return;
+  const id = card.dataset.vendor;
+  armedId = armedId === id ? null : id;
+  const v = vendors.get(id);
+  selBooth = armedId ? null : selBooth;
+  render();
+  if (armedId) toast("Now tap a booth to place " + v.name + ".");
+});
+listEl.addEventListener("keydown", e => {
+  const card = e.target.closest("[data-vendor]");
+  if (!card) return;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); }
+});
+
+stageWrap.addEventListener("click", e => {
+  const g = e.target.closest("[data-booth]");
+  if (!g) return;
+  const id = g.dataset.booth;
+  if (armedId) { assign(armedId, id); return; }
+  selBooth = selBooth === id ? null : id;
+  render();
+});
+stageWrap.addEventListener("keydown", e => {
+  const g = e.target.closest("[data-booth]");
+  if (!g) return;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); g.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") {
+    if (armedId || selBooth) { armedId = null; selBooth = null; render(); }
+  }
+});
+
+/* ============================================================
+   CONTROLS
+   ============================================================ */
+$("#search").addEventListener("input", e => { query = e.target.value; renderList(); });
+
+for (const btn of document.querySelectorAll(".segs button")) {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.filter;
+    for (const b of document.querySelectorAll(".segs button"))
+      b.setAttribute("aria-pressed", String(b === btn));
+    renderList();
+  });
+}
+
+function setZoom(px) {
+  planW = Math.max(300, Math.min(2600, px));
+  document.documentElement.style.setProperty("--planw", planW + "px");
+}
+function fit() {
+  const c = $("#canvas");
+  const h = c.clientHeight - 32;
+  setZoom(Math.max(480, h * (VB.w / VB.h)));
+}
+$("#zoomIn").addEventListener("click", () => setZoom(planW * 1.25));
+$("#zoomOut").addEventListener("click", () => setZoom(planW / 1.25));
+$("#fitBtn").addEventListener("click", fit);
+$("#canvas").addEventListener("wheel", e => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  setZoom(planW * (e.deltaY < 0 ? 1.1 : 1 / 1.1));
+}, { passive: false });
+
+$("#addBtn").addEventListener("click", () => {
+  const name = prompt("Vendor name");
+  if (!name || !name.trim()) return;
+  const clean = name.trim();
+  const id = slug(clean);
+  if (!id) { toast("That name has no letters or numbers in it."); return; }
+  if (vendors.has(id)) { toast(clean + " is already on the list."); return; }
+  const v = { id, name: clean, booth: null, slot: 0, custom: true };
+  vendors.set(id, v);
+  filter = "unplaced"; query = ""; $("#search").value = "";
+  for (const b of document.querySelectorAll(".segs button"))
+    b.setAttribute("aria-pressed", String(b.dataset.filter === "unplaced"));
+  save(v);
+  toast(clean + " added to the vendor list.");
+});
+
+$("#csvBtn").addEventListener("click", async () => {
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const rows = [["Booth", "Vendor", "Shared"]];
+  for (const b of BOOTHS) {
+    const occ = occupantsOf(b.id).filter(Boolean);
+    if (!occ.length) rows.push([b.id, "", ""]);
+    else occ.forEach(v => rows.push([b.id, v.name, occ.length > 1 ? "yes" : "no"]));
+  }
+  for (const v of [...vendors.values()].filter(x => !x.booth).sort((a, b) => a.name.localeCompare(b.name)))
+    rows.push(["", v.name, ""]);
+
+  const csv = rows.map(r => r.map(q).join(",")).join("\r\n");
+  let dl = null;
+  try { dl = await window.claude?.use?.("downloads"); } catch (err) { dl = null; }
+  if (dl) {
+    try {
+      await dl.save({ filename: "booth-assignments.csv", data: csv });
+      return;
+    } catch (err) { /* viewer declined or unavailable — fall through */ }
+  }
+  try {
+    await navigator.clipboard.writeText(csv);
+    toast("Assignments copied to your clipboard — paste into a spreadsheet.");
+  } catch (err) {
+    toast("Could not export here. Try again from a desktop browser.");
+  }
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+render();
+fit();
+window.addEventListener("resize", () => { /* keep the user's zoom */ });
+setStatus("", "Connecting");
+connect();
+</script>
