@@ -74,7 +74,17 @@ body{
 .mono{font-family:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; font-variant-numeric:tabular-nums}
 
 /* ---------- shell ---------- */
-.app{display:grid; grid-template-rows:auto 1fr; height:100vh}
+.app{display:grid; grid-template-rows:auto auto 1fr; height:100vh}
+.setup{
+  display:none; padding:9px 18px; font-size:12.5px; line-height:1.45;
+  background:var(--hot-soft); border-bottom:1px solid var(--line); color:var(--ink);
+}
+.setup.on{display:block}
+.setup b{font-weight:600}
+.setup code{
+  font-family:"IBM Plex Mono", monospace; font-size:11.5px;
+  background:var(--panel); border:1px solid var(--line); border-radius:2px; padding:0 4px;
+}
 .topbar{
   display:flex; align-items:center; gap:20px;
   padding:12px 18px; border-bottom:1px solid var(--line);
@@ -296,6 +306,13 @@ svg{display:block; width:100%; height:auto; overflow:visible}
     </div>
   </header>
 
+  <div class="setup" id="setup">
+    <b>Not connected to a shared plan yet.</b> Assignments are saved in this
+    browser only — other people opening this link will each see their own copy.
+    To make it shared, fill in the <code>SUPABASE</code> block at the top of the
+    script in <code>index.html</code>.
+  </div>
+
   <div class="main">
     <aside class="roster">
       <div class="roster-head">
@@ -426,7 +443,6 @@ for (const name of VENDOR_NAMES) {
 /* ============================================================
    STATE
    ============================================================ */
-let db = null;
 let filter = "unplaced";
 let query = "";
 let armedId = null;      // vendor picked up by tap
@@ -466,69 +482,120 @@ function occupantsOf(boothId) {
 }
 
 /* ============================================================
-   PERSISTENCE
+   STORAGE
+   ------------------------------------------------------------
+   Fill both values in to make the plan shared and persistent for
+   everyone with the link. They come from your Supabase project's
+   Settings -> API page, and both are safe to publish: the anon key
+   only grants what the table's row-level-security policy allows.
+   Leave them blank and the page saves to this browser only.
    ============================================================ */
-async function connect() {
-  try { db = await window.claude?.use?.("db"); } catch (e) { db = null; }
-  if (!db) {
-    setStatus("local", "This device only");
-    toast("Working offline — changes on this page are not shared or saved.");
+const SUPABASE = {
+  url: "",   // https://YOUR-PROJECT.supabase.co
+  key: ""    // the anon / publishable key (starts with "eyJ")
+};
+
+const SUPABASE_LIB = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
+const LOCAL_KEY = "victory-floor-plan-v1";
+
+let mode = "boot";   // "cloud" | "local"
+let sb = null;
+
+/* Fold a set of stored rows into the in-memory roster. */
+function applyRows(rows) {
+  const seen = new Set();
+  for (const r of rows || []) {
+    if (!r || !r.vendor_id) continue;
+    seen.add(r.vendor_id);
+    let v = vendors.get(r.vendor_id);
+    if (!v) {
+      v = { id: r.vendor_id, name: String(r.name || r.vendor_id), custom: true, booth: null, slot: 0 };
+      vendors.set(v.id, v);
+    }
+    v.booth = r.booth == null ? null : String(r.booth);
+    v.slot = r.slot === 1 ? 1 : 0;
+    if (r.name) v.name = String(r.name);
+    v.custom = !!r.custom;
+  }
+  // anything no longer stored is back on the bench
+  for (const v of vendors.values()) {
+    if (seen.has(v.id)) continue;
+    if (v.custom) vendors.delete(v.id);
+    else { v.booth = null; v.slot = 0; }
+  }
+  render();
+}
+
+async function pull() {
+  const { data, error } = await sb.from("assignments").select("*");
+  if (error) {
+    setStatus("local", "Sync stopped");
+    toast("Live sync stopped. Reload the page to reconnect.");
     return;
   }
-  setStatus("live", "Live");
-  db.collection("assignments").onSnapshot(snap => {
-    const seen = new Set();
-    for (const doc of snap.docs) {
-      const d = doc.data() || {};
-      seen.add(doc.id);
-      let v = vendors.get(doc.id);
-      if (!v) {
-        v = { id: doc.id, name: String(d.name || doc.id), custom: true, booth: null, slot: 0 };
-        vendors.set(doc.id, v);
-      }
-      v.booth = d.booth == null ? null : String(d.booth);
-      v.slot = d.slot === 1 ? 1 : 0;
-      if (d.name) v.name = String(d.name);
+  applyRows(data);
+}
+
+async function connect() {
+  if (SUPABASE.url && SUPABASE.key) {
+    try {
+      const { createClient } = await import(SUPABASE_LIB);
+      sb = createClient(SUPABASE.url, SUPABASE.key);
+      mode = "cloud";
+      await pull();
+      sb.channel("assignments-live")
+        .on("postgres_changes", { event: "*", schema: "public", table: "assignments" }, pull)
+        .subscribe();
+      setInterval(pull, 20000);            // safety net if realtime is off
+      setStatus("live", "Live · shared");
+      return;
+    } catch (e) {
+      console.error(e);
+      sb = null;
+      toast("Could not reach the shared plan. Saving to this browser instead.");
     }
-    // a vendor whose doc was removed is back on the bench
-    for (const v of vendors.values()) {
-      if (!seen.has(v.id)) {
-        if (v.custom) vendors.delete(v.id);
-        else { v.booth = null; v.slot = 0; }
-      }
-    }
-    render();
-  }, err => {
-    setStatus("local", "Sync stopped");
-    toast(err.code === "revoked"
-      ? "Your access to this plan ended. Changes are no longer saved."
-      : "Live sync stopped. Reload the page to reconnect.");
-  });
+  }
+  mode = "local";
+  setStatus("local", "This device only");
+  loadLocal();
+  if (!SUPABASE.url) $("#setup").classList.add("on");
+}
+
+function saveLocal() {
+  try {
+    const rows = [...vendors.values()]
+      .filter(v => v.booth || v.custom)
+      .map(v => ({ vendor_id: v.id, name: v.name, booth: v.booth, slot: v.slot, custom: !!v.custom }));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(rows));
+  } catch (e) { /* private window, or storage blocked */ }
+}
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if (raw) applyRows(JSON.parse(raw));
+  } catch (e) { /* unreadable — start empty */ }
 }
 
 async function save(v) {
   render();
-  if (!db) return;
-  try {
-    await db.doc("assignments/" + v.id).set({
-      name: v.name,
-      booth: v.booth,
-      slot: v.slot,
-      custom: !!v.custom,
-      updatedAt: new Date().toISOString()
-    });
-  } catch (e) {
-    if (e && e.code === "quota_exceeded") toast("The plan is full — remove a vendor before adding another.");
-    else if (e && e.code === "resource_exhausted") toast("Too many changes at once. Wait a moment and try again.");
-    else toast("That change did not save. Check your connection and try again.");
-  }
+  if (mode !== "cloud") { saveLocal(); return; }
+  const { error } = await sb.from("assignments").upsert({
+    vendor_id: v.id,
+    name: v.name,
+    booth: v.booth,
+    slot: v.slot,
+    custom: !!v.custom,
+    updated_at: new Date().toISOString()
+  }, { onConflict: "vendor_id" });
+  if (error) toast("That change did not save. Check your connection and try again.");
 }
 
 async function clearDoc(v) {
   render();
-  if (!db) return;
-  try { await db.doc("assignments/" + v.id).delete(); }
-  catch (e) { toast("That change did not save. Check your connection and try again."); }
+  if (mode !== "cloud") { saveLocal(); return; }
+  const { error } = await sb.from("assignments").delete().eq("vendor_id", v.id);
+  if (error) toast("That change did not save. Check your connection and try again.");
 }
 
 /* ============================================================
@@ -956,20 +1023,23 @@ $("#csvBtn").addEventListener("click", async () => {
   for (const v of [...vendors.values()].filter(x => !x.booth).sort((a, b) => a.name.localeCompare(b.name)))
     rows.push(["", v.name, ""]);
 
-  const csv = rows.map(r => r.map(q).join(",")).join("\r\n");
-  let dl = null;
-  try { dl = await window.claude?.use?.("downloads"); } catch (err) { dl = null; }
-  if (dl) {
-    try {
-      await dl.save({ filename: "booth-assignments.csv", data: csv });
-      return;
-    } catch (err) { /* viewer declined or unavailable — fall through */ }
-  }
+  const csv = "﻿" + rows.map(r => r.map(q).join(",")).join("\r\n");
   try {
-    await navigator.clipboard.writeText(csv);
-    toast("Assignments copied to your clipboard — paste into a spreadsheet.");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "booth-assignments.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
-    toast("Could not export here. Try again from a desktop browser.");
+    try {
+      await navigator.clipboard.writeText(csv);
+      toast("Assignments copied to your clipboard — paste into a spreadsheet.");
+    } catch (e2) {
+      toast("Could not export here. Try again from a desktop browser.");
+    }
   }
 });
 
