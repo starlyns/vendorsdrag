@@ -438,20 +438,19 @@ const VB = { x: 14, y: -3, w: 92, h: 186 };
    ============================================================ */
 const VENDOR_NAMES = [
   "AGROSUPER","ALLEN PICKLE WORKS","ALUF PLASTICS DIVISION","AMERCARE / SOUTHSEA",
-  "ANCHOR PACKAGING","ATALANTA","AUNT KITTYS FOODS / HANOVER","B&G",
+  "ANCHOR PACKAGING","ATALANTA","AUNT KITTYS FOODS/ HANOVER","B&G","BIMBO",
   "BUFFALO PROVISIONS","BUMBLE BEE","BUNGE","CAVENDISH","CEDAR VALLEY",
   "CHEESE MERCHANT","CHEFLER","CONAGRA","CREAM O LAND / Unipro","DAISY","DART",
-  "DAVID COOKIE","DOUBLE BARREL","EASTERN FISH","ELARA","FARMER'S IMPORT",
-  "FARMLAND","FURMANO","JM SMUCKERS","JONES","KELLANOVA","KENS","KIKKOMAN",
-  "KONTOS","KPS","KRAFT HEINZ","KRINOS","LAKE ERIE","LAND O LAKE",
-  "LASSONDE PAPPAS / Unipro","LAUBSCHER CHEESE","MAJOR","MARIAH",
-  "MAYAB HAPPY TACO","MCCAIN","MCCORMICK","MORCON","MRS. RESSLERS","NCCO",
-  "NORPAK","OLD WORLD","OLYMPIA","OPEN SYSTEM","PATRIOT PICKLE",
-  "PIKALO EMPANADAS","PLYMOUTH","QUALITY","R.S PORTER","RED GOLD","RUGGIERO",
-  "SABRETT","SAN BERNARDO","SANDT HONEY","SIMONIZ","SMARTER BEV","SMITHFIELD",
-  "SPANISH FOOD SOLUTIONS","STANI DAIRY","STARCO","STRATAS","TEC FOODS",
-  "TELIOS GREEK KITCHEN","TOWER ISLES","TROPICAL CHEESE","TYSON","UNILEVER",
-  "WK KELLOGS"
+  "DAVID","DOUBLE BARREL","EASTERN FISH","ELARA","FARMER'S IMPORT","FARMLAND",
+  "FURMANO","JM SMUCKERS","JONES DAIRY","KELLANOVA","KENS","KIKKOMAN","KONTOS",
+  "KPS","KRAFT HEINZ","KRINOS","LAKE ERIE","LAND O LAKE",
+  "LASSONDE PAPPAS / Unipro","LAUB CHEESE","MAJOR","MARIAH","MAYAB HAPPY TACO",
+  "MCCAIN","MCCORMICK","MORCON","MRS. RESSLERS","NCCO","NORPAK","OLD WORLD",
+  "OLYMPIA","OPEN SYSTEMS","PATRIOT PICKLE","PIKALO EMPANADAS","PLYMOUTH",
+  "QUALITY","R.S PORTER","RED GOLD","RUGGIERO","SABRETT","SAN BERNARDO",
+  "SANDT HONEY","SIMONIZ","SMITHFIELD","SPANISH FOOD SOLUTION","STANI DIARY",
+  "STARCO","STRATAS","TEC FOODS","TOWER ISLES","TROPICAL CHEESE","TYSON",
+  "UNILEVER","WK KELLOGS"
 ];
 
 /* ------------------------------------------------------------
@@ -476,9 +475,9 @@ const GROUP_BY_ID = new Map(GROUPS.map(g => [g.id, g]));
 /* Only the vendors the printed key actually named. Everything
    else is "direct" until someone says otherwise. */
 const VENDOR_GROUP = {
-  major: "tc", "spanish-food-solutions": "tc",
-  jones: "smc",
-  "laubscher-cheese": "ba",
+  major: "tc", "spanish-food-solution": "tc", bimbo: "tc",
+  "jones-dairy": "smc",
+  "laub-cheese": "ba",
   smithfield: "favorite", "lake-erie": "favorite", mariah: "favorite",
   agrosuper: "favorite", quality: "favorite", "eastern-fish": "favorite",
   "mrs-resslers": "favorite", "old-world": "favorite",
@@ -486,7 +485,7 @@ const VENDOR_GROUP = {
   "jm-smuckers": "affinity", "anchor-packaging": "affinity",
   "bumble-bee": "core", bunge: "core", kens: "core",
   "san-bernardo": "advantage", sabrett: "advantage",
-  conagra: "acxion", "david-cookie": "acxion", "b-g": "acxion",
+  conagra: "acxion", david: "acxion", "b-g": "acxion",
   kikkoman: "acxion", "land-o-lake": "acxion", elara: "acxion"
 };
 
