@@ -317,7 +317,7 @@ svg{display:block; width:100%; height:auto; overflow:visible}
   <header class="topbar">
     <div class="brand">
       <h1>Victory Floor Plan</h1>
-      <div class="sub">Booth assignment &middot; 72 booths</div>
+      <div class="sub">Booth assignment &middot; 74 booths + 2 areas</div>
     </div>
     <div class="tools">
       <span class="status" id="status"><span class="dot"></span><span id="statusText">Connecting</span></span>
@@ -389,25 +389,33 @@ svg{display:block; width:100%; height:auto; overflow:visible}
    the lower half, split by the centre aisle.
    ============================================================ */
 const BW = 10, BH = 10;
-const ROWS_UPPER = [26, 36, 46, 56, 66, 76];
-const ROWS_LOWER = [105, 115, 125, 135, 145, 155];
+const UP   = [26, 36, 46, 56, 66, 76];              // upper rows, top to bottom
+const UP7  = UP.concat(86);                         // bands A and D run one row deeper
+const LOW  = [105, 115, 125, 135, 145, 155];        // lower rows, top to bottom
+const rev  = a => [...a].reverse();
 
-const COLUMNS = [
-  { x: 18, upper: [12, 11, 10,  9,  8,  7], lower: [ 6,  5,  4,  3,  2,  1] },
-  { x: 33, upper: [13, 14, 15, 16, 17, 18], lower: [19, 20, 21, 22, 23, 24] },
-  { x: 43, upper: [36, 35, 34, 33, 32, 31], lower: [30, 29, 28, 27, 26, 25] },
-  { x: 59, upper: [37, 38, 39, 40, 41, 42], lower: [43, 44, 45, 46, 47, 48] },
-  { x: 69, upper: [60, 59, 58, 57, 56, 55], lower: [54, 53, 52, 51, 50, 49] },
-  { x: 86, upper: [61, 62, 63, 64, 65, 66], lower: [67, 68, 69, 70, 71, 72] }
+/* Each band lists its rows in numbering order, and numbers run 1..74
+   straight down the list — the serpentine the printed plan used. */
+const BANDS = [
+  { x: 18, rows: rev(LOW).concat(rev(UP7)) },
+  { x: 33, rows: UP.concat(LOW) },
+  { x: 43, rows: rev(LOW).concat(rev(UP)) },
+  { x: 59, rows: UP.concat(LOW) },
+  { x: 69, rows: rev(LOW).concat(rev(UP)) },
+  { x: 86, rows: UP7.concat(LOW) }
 ];
 
 const BOOTHS = [];
-for (const col of COLUMNS) {
-  ROWS_UPPER.forEach((y, i) => BOOTHS.push({ id: String(col.upper[i]), x: col.x, y, w: BW, h: BH }));
-  ROWS_LOWER.forEach((y, i) => BOOTHS.push({ id: String(col.lower[i]), x: col.x, y, w: BW, h: BH }));
-}
-BOOTHS.sort((a, b) => Number(a.id) - Number(b.id));
+let boothNo = 0;
+for (const band of BANDS)
+  for (const y of band.rows)
+    BOOTHS.push({ id: String(++boothNo), x: band.x, y, w: BW, h: BH });
+
+/* Two open areas that take vendors but carry no booth number. */
+BOOTHS.push({ id: "ibp",   name: "IBP",   x: 31, y: 11,   w: 11,   h: 11.6, rot: -20 });
+BOOTHS.push({ id: "truck", name: "TRUCK", x: 71, y: 10.6, w: 12.6, h: 9.2 });
 const BOOTH_BY_ID = new Map(BOOTHS.map(b => [b.id, b]));
+const boothName = id => (BOOTH_BY_ID.get(id) || {}).name || id;
 
 /* Fixed features — not assignable, drawn for orientation. */
 const FIXTURES = [
@@ -415,23 +423,15 @@ const FIXTURES = [
   { kind: "rect", x: 42.6, y: 1.6,  w: 7,    h: 3.8,  label: "DJ",     small: true },
   { kind: "rect", x: 60,   y: 1.6,  w: 10.4, h: 3.8,  label: "PRIZES", small: true },
   { kind: "rect", x: 48.6, y: 9.9,  w: 12.2, h: 3.6,  label: "PRODUCE" },
-  { kind: "rect", x: 31,   y: 11,   w: 11,   h: 11.6, label: "IBP", rot: -20 },
-  { kind: "rect", x: 71,   y: 10.6, w: 12.6, h: 9.2,  label: "TRUCK" },
-  { kind: "rect", x: 73.6, y: 20.4, w: 6.8,  h: 3.4,  label: "BEV", small: true },
   { kind: "rect", x: 51.4, y: 17,   w: 9.6,  h: 5,    label: "2 TABLES", small: true },
-  { kind: "rect", x: 45,   y: 91.4, w: 20.6, h: 7.2,  label: "6 TABLES" },
-  { kind: "rect", x: 52.2, y: 99.6, w: 6.8,  h: 3.4,  label: "BEV", small: true },
-  { kind: "rect", x: 26.9, y: 170,  w: 31.1, h: 7,    label: "RECEPTION" },
-  { kind: "rect", x: 58.9, y: 170,  w: 34,   h: 7,    label: "PASSPORT TABLE" }
+  { kind: "rect", x: 45,   y: 91.4, w: 20.6, h: 7.2,  label: "6 TABLES" }
 ];
 
-/* Cocktail-table clusters flanking the centre aisle. */
-const CLUSTERS = [
-  { x: 22.5, y: 90.4 }, { x: 33.2, y: 90.4 },
-  { x: 75.2, y: 90.4 }, { x: 85.3, y: 90.4 }
-];
+/* Cocktail-table clusters in the centre aisle. The outer pair was
+   dropped — the new booths below bands A and D stand there now. */
+const CLUSTERS = [{ x: 33.2, y: 90.4 }, { x: 75.2, y: 90.4 }];
 
-const VB = { x: 14, y: -3, w: 92, h: 186 };
+const VB = { x: 14, y: -3, w: 92, h: 173 };
 
 /* ============================================================
    VENDOR ROSTER
@@ -669,7 +669,7 @@ function assign(vendorId, boothId) {
 
   const occ = occupantsOf(boothId).filter(Boolean);
   if (occ.length >= 2) {
-    toast("Booth " + boothId + " already holds two vendors. Unassign one first.");
+    toast(boothName(boothId) + " already holds two vendors. Unassign one first.");
     return;
   }
   v.booth = boothId;
@@ -677,7 +677,7 @@ function assign(vendorId, boothId) {
   armedId = null;
   selBooth = boothId;
   save(v);
-  if (occ.length === 1) toast(v.name + " is sharing booth " + boothId + " with " + occ[0].name + ".");
+  if (occ.length === 1) toast(v.name + " is sharing " + boothName(boothId) + " with " + occ[0].name + ".");
 }
 
 function unassign(vendorId) {
@@ -831,7 +831,7 @@ function renderPlan() {
   }
 
   /* --- pipe and drape along the right wall --- */
-  svg.appendChild(el("path", { class: "drape", d: "M100.6 24 L100.6 168" }));
+  svg.appendChild(el("path", { class: "drape", d: "M100.6 24 L100.6 166" }));
   const dl = el("text", {
     class: "drape-label", x: 103.4, y: 96,
     "text-anchor": "middle",
@@ -852,8 +852,11 @@ function renderPlan() {
       "data-booth": b.id,
       tabindex: "0",
       role: "button",
-      "aria-label": "Booth " + b.id + (n ? ": " + occ.filter(Boolean).map(v => v.name).join(", ") : ": open")
+      "aria-label": (b.name || "Booth " + b.id) +
+                    (n ? ": " + occ.filter(Boolean).map(v => v.name).join(", ") : ": open")
     });
+    if (b.rot) g.setAttribute("transform",
+      "rotate(" + b.rot + " " + (b.x + b.w / 2) + " " + (b.y + b.h / 2) + ")");
     g.appendChild(el("rect", { class: "shell", x: b.x, y: b.y, width: b.w, height: b.h }));
 
     // group colour, one band per occupant
@@ -866,7 +869,7 @@ function renderPlan() {
     else if (n === 2) { paint(occ[0], b.y, b.h / 2); paint(occ[1], b.y + b.h / 2, b.h / 2); }
 
     const num = el("text", { class: "num mono", x: b.x + 0.7, y: b.y + 2.4 });
-    num.textContent = b.id;
+    num.textContent = b.name || b.id;
     g.appendChild(num);
 
     if (n === 1) {
@@ -964,9 +967,9 @@ function renderInspector() {
   const head = document.createElement("div");
   head.className = "insp-head";
   const b = document.createElement("span");
-  b.className = "b mono"; b.textContent = selBooth;
+  b.className = "b mono"; b.textContent = boothName(selBooth);
   const l = document.createElement("span");
-  l.className = "l"; l.textContent = "Booth";
+  l.className = "l"; l.textContent = BOOTH_BY_ID.get(selBooth).name ? "Area" : "Booth";
   const x = document.createElement("button");
   x.textContent = "×";
   x.setAttribute("aria-label", "Close booth details");
