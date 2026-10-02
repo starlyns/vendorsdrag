@@ -412,8 +412,8 @@ for (const band of BANDS)
     BOOTHS.push({ id: String(++boothNo), x: band.x, y, w: BW, h: BH });
 
 /* Two open areas that take vendors but carry no booth number. */
-BOOTHS.push({ id: "ibp",   name: "IBP",   x: 31, y: 11,   w: 11,   h: 11.6, rot: -20 });
-BOOTHS.push({ id: "truck", name: "TRUCK", x: 71, y: 10.6, w: 12.6, h: 9.2 });
+BOOTHS.push({ id: "ibp",   name: "IBP",   x: 31.5, y: 11, w: BW, h: BH });
+BOOTHS.push({ id: "truck", name: "TRUCK", x: 72.3, y: 11, w: BW, h: BH });
 const BOOTH_BY_ID = new Map(BOOTHS.map(b => [b.id, b]));
 const boothName = id => (BOOTH_BY_ID.get(id) || {}).name || id;
 
@@ -855,8 +855,6 @@ function renderPlan() {
       "aria-label": (b.name || "Booth " + b.id) +
                     (n ? ": " + occ.filter(Boolean).map(v => v.name).join(", ") : ": open")
     });
-    if (b.rot) g.setAttribute("transform",
-      "rotate(" + b.rot + " " + (b.x + b.w / 2) + " " + (b.y + b.h / 2) + ")");
     g.appendChild(el("rect", { class: "shell", x: b.x, y: b.y, width: b.w, height: b.h }));
 
     // group colour, one band per occupant
