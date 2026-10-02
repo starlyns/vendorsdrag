@@ -868,9 +868,11 @@ function renderPlan() {
     if (n === 1) paint(occ[0], b.y, b.h);
     else if (n === 2) { paint(occ[0], b.y, b.h / 2); paint(occ[1], b.y + b.h / 2, b.h / 2); }
 
-    const num = el("text", { class: "num mono", x: b.x + 0.7, y: b.y + 2.4 });
-    num.textContent = b.name || b.id;
-    g.appendChild(num);
+    if (!b.name) {   // named areas carry no corner label
+      const num = el("text", { class: "num mono", x: b.x + 0.7, y: b.y + 2.4 });
+      num.textContent = b.id;
+      g.appendChild(num);
+    }
 
     if (n === 1) {
       label(g, wrap(occ[0].name, 13, 3), b.x + b.w / 2, b.y + b.h / 2 + 0.9, 1.35, "nm");
