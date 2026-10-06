@@ -317,7 +317,7 @@ svg{display:block; width:100%; height:auto; overflow:visible}
   <header class="topbar">
     <div class="brand">
       <h1>Victory Floor Plan</h1>
-      <div class="sub">Booth assignment &middot; 74 booths + 2 areas</div>
+      <div class="sub" id="sub"></div>
     </div>
     <div class="tools">
       <span class="status" id="status"><span class="dot"></span><span id="statusText">Connecting</span></span>
@@ -1163,6 +1163,9 @@ $("#csvBtn").addEventListener("click", async () => {
 /* ============================================================
    BOOT
    ============================================================ */
+const areas = BOOTHS.filter(b => b.name).length;
+$("#sub").textContent = "Booth assignment · " + (BOOTHS.length - areas) + " booths + " + areas + " areas";
+
 render();
 fit();
 window.addEventListener("resize", () => { /* keep the user's zoom */ });
