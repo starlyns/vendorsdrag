@@ -390,7 +390,7 @@ svg{display:block; width:100%; height:auto; overflow:visible}
    ============================================================ */
 const BW = 10, BH = 10;
 const UP   = [26, 36, 46, 56, 66, 76];              // upper rows, top to bottom
-const UP7  = UP.concat(86);                         // bands A and D run one row deeper
+const UP7  = UP.concat(86);                         // four bands run one row deeper
 const LOW  = [105, 115, 125, 135, 145, 155];        // lower rows, top to bottom
 const rev  = a => [...a].reverse();
 
@@ -398,10 +398,10 @@ const rev  = a => [...a].reverse();
    straight down the list — the serpentine the printed plan used. */
 const BANDS = [
   { x: 18, rows: rev(LOW).concat(rev(UP7)) },
-  { x: 33, rows: UP.concat(LOW) },
+  { x: 33, rows: UP7.concat(LOW) },
   { x: 43, rows: rev(LOW).concat(rev(UP)) },
   { x: 59, rows: UP.concat(LOW) },
-  { x: 69, rows: rev(LOW).concat(rev(UP)) },
+  { x: 69, rows: rev(LOW).concat(rev(UP7)) },
   { x: 86, rows: UP7.concat(LOW) }
 ];
 
@@ -426,10 +426,6 @@ const FIXTURES = [
   { kind: "rect", x: 51.4, y: 17,   w: 9.6,  h: 5,    label: "2 TABLES", small: true },
   { kind: "rect", x: 45,   y: 91.4, w: 20.6, h: 7.2,  label: "6 TABLES" }
 ];
-
-/* Cocktail-table clusters in the centre aisle. The outer pair was
-   dropped — the new booths below bands A and D stand there now. */
-const CLUSTERS = [{ x: 33.2, y: 90.4 }, { x: 75.2, y: 90.4 }];
 
 const VB = { x: 14, y: -3, w: 92, h: 173 };
 
@@ -814,19 +810,6 @@ function renderPlan() {
     if (f.rot) g.setAttribute("transform", "rotate(" + f.rot + " " + (f.x + f.w / 2) + " " + (f.y + f.h / 2) + ")");
     g.appendChild(el("rect", { x: f.x, y: f.y, width: f.w, height: f.h, rx: 0.6 }));
     label(g, wrap(f.label, f.small ? 9 : 16, 2), f.x + f.w / 2, f.y + f.h / 2, f.small ? 1.1 : 1.4, "");
-    svg.appendChild(g);
-  }
-
-  /* --- cocktail-table clusters --- */
-  for (const c of CLUSTERS) {
-    const g = el("g", { class: "fixture" });
-    for (let i = 0; i < 4; i++) {
-      g.appendChild(el("circle", {
-        cx: c.x + (i % 2) * 4.2 + 1.6,
-        cy: c.y + Math.floor(i / 2) * 5.6 + 2,
-        r: 1.5
-      }));
-    }
     svg.appendChild(g);
   }
 
